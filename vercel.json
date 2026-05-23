@@ -1,0 +1,29 @@
+{
+    "experimentalServices": {
+        "frontend": {
+            "root": "frontend",
+            "routePrefix": "/",
+            "framework": "nextjs"
+        },
+        "auth": {
+            "root": "services/auth",
+            "routePrefix": "/_/auth"
+        },
+        "job": {
+            "root": "services/job",
+            "routePrefix": "/_/job"
+        },
+        "payment": {
+            "root": "services/payment",
+            "routePrefix": "/_/payment"
+        },
+        "user": {
+            "root": "services/user",
+            "routePrefix": "/_/user"
+        },
+        "utils": {
+            "root": "services/utils",
+            "routePrefix": "/_/utils"
+        }
+    }
+}
