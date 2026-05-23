@@ -66,7 +66,7 @@ const LoginPage = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">
-            Welcome back to HireHeaven
+            Welcome back to NovaHire
           </h1>
           <p className="text-sm opacity-70">Sign in to continue your journey</p>
         </div>

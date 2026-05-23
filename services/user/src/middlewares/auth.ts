@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { sql } from "../utils/db.js";
+import { getJwtSecret } from "../utils/env.js";
 
 interface User {
   user_id: number;
@@ -40,7 +41,7 @@ export const isAuth = async (
 
     const decodedPayload = jwt.verify(
       token,
-      process.env.JWT_SEC as string
+      getJwtSecret()
     ) as JwtPayload;
 
     if (!decodedPayload || !decodedPayload.id) {

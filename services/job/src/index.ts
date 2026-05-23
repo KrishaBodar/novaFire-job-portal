@@ -1,31 +1,34 @@
 import app from "./app.js";
 import dotenv from "dotenv";
-import { sql } from "./utils/db.js";
+import { sql, testDatabaseConnection } from "./utils/db.js";
 import { connectKafka } from "./producer.js";
 
 dotenv.config();
 
-connectKafka();
+const port = Number(process.env.PORT || 5003);
 
-async function initDB() {
-  try {
-    await sql`
-    DO $$
-    BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'job_type') THEN 
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function initDb() {
+  await testDatabaseConnection();
+
+  await sql`
+  DO $$
+  BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'job_type') THEN
         CREATE TYPE job_type AS ENUM ('Full-time', 'Part-time', 'Contract', 'Internship');
-        END IF;
-        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'work_location') THEN 
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'work_location') THEN
         CREATE TYPE work_location AS ENUM ('On-site', 'Remote', 'Hybrid');
-        END IF;
-        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'application_status') THEN 
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'application_status') THEN
         CREATE TYPE application_status AS ENUM ('Submitted', 'Rejected', 'Hired');
-        END IF;
-    END$$;
-    `;
+      END IF;
+  END$$;
+  `;
 
-    await sql`
-    CREATE TABLE IF NOT EXISTS companies (
+  await sql`
+  CREATE TABLE IF NOT EXISTS companies (
     company_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     description TEXT NOT NULL,
@@ -34,11 +37,11 @@ async function initDB() {
     logo_public_id VARCHAR(255) NOT NULL,
     recruiter_id INTEGER NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-    `;
+  )
+  `;
 
-    await sql`
-    CREATE TABLE IF NOT EXISTS jobs(
+  await sql`
+  CREATE TABLE IF NOT EXISTS jobs(
     job_id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
@@ -52,11 +55,11 @@ async function initDB() {
     posted_by_recuriter_id INTEGER NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT true
-    )
-    `;
+  )
+  `;
 
-    await sql`
-    CREATE TABLE IF NOT EXISTS applications(
+  await sql`
+  CREATE TABLE IF NOT EXISTS applications(
     application_id SERIAL PRIMARY KEY,
     job_id INTEGER NOT NULL REFERENCES jobs(job_id) ON DELETE CASCADE,
     applicant_id INTEGER NOT NULL,
@@ -66,22 +69,38 @@ async function initDB() {
     applied_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     subscribed BOOLEAN,
     UNIQUE (job_id, applicant_id)
-    )
-    `;
+  )
+  `;
 
-    console.log(
-      "Job service database tables checked and created successfully."
-    );
-  } catch (error) {
-    console.log("Error while creating tables", error);
-    process.exit(1);
-  }
+  console.log("Job service database tables checked and created successfully.");
 }
 
-initDB().then(() => {
-  app.listen(process.env.PORT, () => {
-    console.log(
-      `Job service is running on http://localhost:${process.env.PORT}`
-    );
-  });
-});
+const startServer = async () => {
+  const maxRetries = 3;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await connectKafka();
+      await initDb();
+
+      app.listen(port, () => {
+        console.log(`Job service is running on http://localhost:${port}`);
+      });
+
+      return;
+    } catch (error) {
+      console.error(
+        `Job service startup failed (attempt ${attempt}/${maxRetries})`,
+        error
+      );
+
+      if (attempt < maxRetries) {
+        await wait(2000 * attempt);
+      }
+    }
+  }
+
+  console.error("Job service could not start after multiple retries.");
+};
+
+void startServer();

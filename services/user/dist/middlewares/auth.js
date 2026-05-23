@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { sql } from "../utils/db.js";
+import { getJwtSecret } from "../utils/env.js";
 export const isAuth = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
@@ -10,7 +11,7 @@ export const isAuth = async (req, res, next) => {
             return;
         }
         const token = authHeader.split(" ")[1];
-        const decodedPayload = jwt.verify(token, process.env.JWT_SEC);
+        const decodedPayload = jwt.verify(token, getJwtSecret());
         if (!decodedPayload || !decodedPayload.id) {
             res.status(401).json({
                 message: "Invalid Token",

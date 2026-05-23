@@ -26,12 +26,13 @@ const NavBar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link href={"/"} className="flex items-center gap-1 group">
-              <div className="text-2xl font-bold tracking-tight">
-                <span className="bg-linear-to-r from bg-blue-600 to-blue-800 bg-clip-text text-transparent">
-                  Hire
+            <Link href={"/"} className="flex items-center gap-2 group">
+              <div className="text-2xl font-extrabold tracking-tight flex items-center">
+                <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
+                  Nova
                 </span>
-                <span className="text-red-500">Heaven</span>
+                <span className="text-foreground font-semibold">Hire</span>
+                <span className="h-2 w-2 rounded-full bg-indigo-500 ml-1 animate-pulse shadow-[0_0_8px_#6366f1]" />
               </div>
             </Link>
           </div>
@@ -148,7 +149,7 @@ const NavBar = () => {
       {/* mobile view */}
       <div
         className={`md:hidden border-t overflow-hidden transition-all duration-300 ease-in-out ${
-          isOpen ? "max-96 opacity-100" : "max-h-0 opacity-0"
+          isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         <div className="px-3 py-3 space-y-1 bg-background/95 backdrop-blur-md">

@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { ChangeEvent, useRef, useState } from "react";
+import React, { ChangeEvent, useMemo, useRef, useState } from "react";
 
 const Info: React.FC<AccontProps> = ({ user, isYourAccount }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -85,6 +85,13 @@ const Info: React.FC<AccontProps> = ({ user, isYourAccount }) => {
   };
 
   const router = useRouter();
+  const subscriptionActive = useMemo(() => {
+    if (!user.subscription) {
+      return false;
+    }
+
+    return new Date(user.subscription).getTime() > new Date().getTime();
+  }, [user.subscription]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -95,7 +102,7 @@ const Info: React.FC<AccontProps> = ({ user, isYourAccount }) => {
               <div className="w-32 h-32 rounded-full border-4 border-background overflow-hidden shadow-xl bg-background">
                 <img
                   src={user.profile_pic ? user.profile_pic : "/user.png"}
-                  alt=""
+                  alt={`${user.name} profile`}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -265,7 +272,7 @@ const Info: React.FC<AccontProps> = ({ user, isYourAccount }) => {
                           </Button>
                         </div>
                       </>
-                    ) : new Date(user.subscription).getTime() > Date.now() ? (
+                    ) : subscriptionActive ? (
                       <div className="flex items-center justify-between flex-wrap gap-4">
                         <div>
                           <div className="flex items-center gap-2 mb-2">

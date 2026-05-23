@@ -8,20 +8,19 @@ import jwt from "jsonwebtoken";
 import { forgotPasswordTemplate } from "../templete.js";
 import { publishToTopic } from "../producer.js";
 import { redisClient } from "../index.js";
+import { getJwtSecret } from "../utils/env.js";
 
-const jwtSecret = Array.isArray(process.env.JWT_SEC)
-  ? process.env.JWT_SEC[0]
-  : process.env.JWT_SEC;
-
-if (!jwtSecret) {
-  throw new Error("JWT secret is not configured");
-}
+const jwtSecret = getJwtSecret();
 
 export const registerUser = TryCatch(async (req, res, next) => {
   const { name, email, password, phoneNumber, role, bio } = req.body;
 
   if (!name || !email || !password || !phoneNumber || !role) {
     throw new ErrorHandler(400, "Please fill all details");
+  }
+
+  if (role !== "recruiter" && role !== "jobseeker") {
+    throw new ErrorHandler(400, "Invalid role selected");
   }
 
   const existingUsers =
@@ -150,7 +149,12 @@ export const forgotPassword = TryCatch(async (req, res, next) => {
     { expiresIn: "15m" }
   );
 
-  const resetLink = `${process.env.Frontend_Url}/reset/${resetToken}`;
+  const frontendUrl =
+    process.env.Frontend_Url ||
+    process.env.FRONTEND_URL ||
+    "http://localhost:3000";
+
+  const resetLink = `${frontendUrl}/reset/${resetToken}`;
 
   await redisClient.set(`forgot:${email}`, resetToken, {
     EX: 900,

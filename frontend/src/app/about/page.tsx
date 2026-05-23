@@ -1,62 +1,72 @@
 import { Button } from "@/components/ui/button";
+import { ArrowRight, BriefcaseBusiness, Globe, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-import { ArrowRight } from "lucide-react";
 
 const About = () => {
   return (
-    <div className="min-h-screen">
-      {/* Mission Section */}
-      <section className="container mx-auto px-4 py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
-          {/* Image */}
-          <div className="flex justify-center mb-8">
-            <img
-              src="/about.jpg"
-              className="w-full max-w-[500px] rounded-2xl shadow-lg"
-              alt="About HireHeaven"
-            />
-          </div>
-
-          {/* Content */}
-          <div className="text-center space-y-6">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold">
-              Our Mission At Hire
-              <span className="text-red-500">Heaven</span>
-            </h1>
-
-            <p
-              className="text-lg md:text-xl leading-relaxed opacity-90 max-w-3xl mx
-auto"
-            >
-              At HireHaven, we're dedicated to revolutionizing the job search
-              experience. Our mission is to create meaningful connections
-              between talented individuals and forward-thinking companies,
-              fostering growth and success for both.
-            </p>
-          </div>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#fff7ed_0%,#f8fafc_45%,#ffffff_100%)] dark:bg-[radial-gradient(circle_at_top,#1f2937_0%,#0f172a_45%,#020617_100%)]">
+      <section className="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-[0.95fr_1.05fr] md:items-center md:py-24">
+        <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/70 shadow-2xl backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
+          <img
+            src="/about.jpg"
+            className="h-full w-full object-cover"
+            alt="Team discussing hiring goals"
+          />
         </div>
-      </section>
 
-      {/* CTA Section */}
-      <section className="py-16 md:py-20 bg-secondary">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
-              Ready to find your dream job?
-            </h2>
-            <p className="text-lg md:text-xl opacity-80">
-              Join thousands of successful job seekers on HireHeaven
-            </p>
-            <div className="pt-4">
-              <Link href="/jobs">
-                <Button size="lg" className="gap-2 h-12 px-8 text-base">
-                  Get Started
-                  <ArrowRight size={18} />
-                </Button>
-              </Link>
-            </div>
+        <div className="space-y-6">
+          <div className="inline-flex items-center gap-2 rounded-full border bg-white/70 px-4 py-2 text-sm font-medium shadow-sm backdrop-blur dark:bg-white/5">
+            <Sparkles size={16} className="text-orange-500" />
+            Built for job seekers and recruiters
           </div>
+
+          <h1 className="text-4xl font-bold leading-tight md:text-5xl">
+            A better hiring experience for both sides of the market.
+          </h1>
+
+          <p className="text-lg leading-8 text-muted-foreground">
+            NovaHire is designed to reduce the noise in hiring. We help
+            candidates present themselves more clearly and give recruiters a
+            simpler, faster way to discover strong talent and manage job
+            pipelines.
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              {
+                icon: Users,
+                title: "Candidate-first",
+                body: "Sharper profiles, resume tools, and smoother application journeys.",
+              },
+              {
+                icon: BriefcaseBusiness,
+                title: "Recruiter-ready",
+                body: "Cleaner employer pages, job management, and application review.",
+              },
+              {
+                icon: Globe,
+                title: "Scalable",
+                body: "A modular platform ready to grow into a real production workflow.",
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="rounded-2xl border bg-white/70 p-5 shadow-sm backdrop-blur dark:bg-white/5"
+              >
+                <item.icon size={20} className="mb-3 text-indigo-500" />
+                <h3 className="mb-2 font-semibold">{item.title}</h3>
+                <p className="text-sm text-muted-foreground">{item.body}</p>
+              </div>
+            ))}
+          </div>
+
+          <Link href="/jobs">
+            <Button size="lg" className="h-12 gap-2 px-8 text-base">
+              Explore opportunities
+              <ArrowRight size={18} />
+            </Button>
+          </Link>
         </div>
       </section>
     </div>

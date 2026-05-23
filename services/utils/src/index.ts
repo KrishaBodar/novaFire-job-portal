@@ -7,6 +7,14 @@ import { v2 as cloudinary } from "cloudinary";
 
 dotenv.config();
 
+const allowedOrigins = (
+  process.env.CORS_ORIGIN ||
+  process.env.FRONTEND_URL ||
+  "http://localhost:3000"
+)
+  .split(",")
+  .map((origin) => origin.trim());
+
 //startSendMailConsumer();
 
 cloudinary.config({
@@ -16,7 +24,15 @@ cloudinary.config({
 });
 
 const app = express();
-app.use(cors());
+app.get("/health", (_req, res) => {
+  res.json({ service: "utils", status: "ok" });
+});
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));

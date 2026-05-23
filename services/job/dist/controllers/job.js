@@ -102,6 +102,27 @@ export const updateJob = TryCatch(async (req, res) => {
         job: updatedJob,
     });
 });
+export const deleteJob = TryCatch(async (req, res) => {
+    const user = req.user;
+    if (!user) {
+        throw new ErrorHandler(401, "Authentication required");
+    }
+    if (user.role !== "recruiter") {
+        throw new ErrorHandler(403, "Forbidden: Only recruiter can delete a job");
+    }
+    const { jobId } = req.params;
+    const [job] = await sql `
+    SELECT job_id FROM jobs
+    WHERE job_id = ${jobId} AND posted_by_recuriter_id = ${user.user_id}
+  `;
+    if (!job) {
+        throw new ErrorHandler(404, "Job not found or you're not authorized to delete it");
+    }
+    await sql `DELETE FROM jobs WHERE job_id = ${jobId}`;
+    res.json({
+        message: "Job deleted successfully",
+    });
+});
 export const getAllCompany = TryCatch(async (req, res) => {
     const companies = await sql `SELECT * FROM companies WHERE recruiter_id = ${req.user?.user_id}`;
     res.json(companies);
@@ -143,7 +164,19 @@ export const getAllActiveJobs = TryCatch(async (req, res) => {
     res.json(jobs);
 });
 export const getSingleJob = TryCatch(async (req, res) => {
-    const [job] = await sql `SELECT * FROM jobs WHERE job_id = ${req.params.jobId}`;
+    const [job] = await sql `
+    SELECT
+      j.*,
+      c.name AS company_name,
+      c.logo AS company_logo,
+      c.website AS company_website
+    FROM jobs j
+    JOIN companies c ON j.company_id = c.company_id
+    WHERE j.job_id = ${req.params.jobId}
+  `;
+    if (!job) {
+        throw new ErrorHandler(404, "Job not found");
+    }
     res.json(job);
 });
 export const getAllApplicationForJob = TryCatch(async (req, res) => {

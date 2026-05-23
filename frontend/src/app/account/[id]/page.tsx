@@ -1,13 +1,12 @@
 "use client";
-import { user_service } from "@/context/AppContext";
+import { getErrorMessage } from "@/lib/api";
 import { User } from "@/type";
-import axios from "axios";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import Cookies from "js-cookie";
 import Loading from "@/components/loading";
 import Info from "../components/info";
 import Skills from "../components/skills";
+import { userApi } from "@/lib/http";
 
 const UserAccount = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -16,24 +15,20 @@ const UserAccount = () => {
   const { id } = useParams();
 
   async function fetchUser() {
-    const token = Cookies.get("token");
     try {
-      const { data } = await axios.get(`${user_service}/api/user/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const { data } = await userApi.get(`/api/user/${id}`);
 
       setUser(data);
     } catch (error) {
-      console.log(error);
+      console.log(getErrorMessage(error, "Unable to load user profile"));
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchUser();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchUser();
   }, [id]);
 
   if (loading) return <Loading />;

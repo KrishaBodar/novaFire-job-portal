@@ -1,7 +1,6 @@
 "use client";
-import { auth_service, useAppData } from "@/context/AppContext";
-import axios from "axios";
-import { redirect } from "next/navigation";
+import { useAppData } from "@/context/AppContext";
+import { redirect, useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 import Cookies from "js-cookie";
@@ -11,6 +10,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Loading from "@/components/loading";
+import { getErrorMessage } from "@/lib/api";
+import { authApi } from "@/lib/http";
 
 const RegisterPage = () => {
   const [name, setName] = useState("");
@@ -21,6 +22,7 @@ const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [btnLoading, setBtnLoading] = useState(false);
+  const router = useRouter();
 
   const { isAuth, setUser, loading, setIsAuth } = useAppData();
 
@@ -47,10 +49,7 @@ const RegisterPage = () => {
       }
     }
     try {
-      const { data } = await axios.post(
-        `${auth_service}/api/auth/register`,
-        formData
-      );
+      const { data } = await authApi.post(`/api/auth/register`, formData);
 
       toast.success(data.message);
 
@@ -61,8 +60,9 @@ const RegisterPage = () => {
       });
       setUser(data.registeredUser);
       setIsAuth(true);
-    } catch (error: any) {
-      toast.error(error.response.data.message);
+      router.push("/");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Unable to register"));
       setIsAuth(false);
     } finally {
       setBtnLoading(false);
@@ -73,7 +73,7 @@ const RegisterPage = () => {
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">Join HireHeaven</h1>
+          <h1 className="text-4xl font-bold mb-2">Join NovaHire</h1>
           <p className="text-sm opacity-70">
             Create your account to start a new journey
           </p>
@@ -184,6 +184,7 @@ const RegisterPage = () => {
                           id="resume"
                           type="file"
                           accept="application/pdf"
+                          required={role === "jobseeker"}
                           onChange={(e) => {
                             if (e.target.files && e.target.files[0]) {
                               setResume(e.target.files[0]);
@@ -226,7 +227,7 @@ const RegisterPage = () => {
             <p className="text-center text-sm">
               Already have an account{" "}
               <Link
-                href={"/register"}
+                href={"/login"}
                 className="text-blue-500 font-medium hover:underline transition-all"
               >
                 Login?

@@ -1,16 +1,26 @@
 "use client";
 
 import { AppContextType, Application, AppProviderProps, User } from "@/type";
+import {
+  authServiceUrl,
+  getAuthHeaders,
+  getAuthToken,
+  getErrorMessage,
+  jobServiceUrl,
+  paymentServiceUrl,
+  userServiceUrl,
+  utilsServiceUrl,
+} from "@/lib/api";
+import { userApi } from "@/lib/http";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import Cookies from "js-cookie";
-import axios from "axios";
 
-export const utils_service = "http://35.154.186.96:5001";
-export const auth_service = "http://35.154.186.96:5000";
-export const user_service = "http://35.154.186.96:5002";
-export const job_service = "http://35.154.186.96:5003";
-export const payment_service = "http://35.154.186.96:5004";
+export const utils_service = utilsServiceUrl;
+export const auth_service = authServiceUrl;
+export const user_service = userServiceUrl;
+export const job_service = jobServiceUrl;
+export const payment_service = paymentServiceUrl;
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -20,15 +30,18 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [btnLoading, setBtnLoading] = useState(false);
 
-  const token = Cookies.get("token");
-
   async function fetchUser() {
+    const headers = getAuthHeaders();
+
+    if (!headers) {
+      setUser(null);
+      setIsAuth(false);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const { data } = await axios.get(`${user_service}/api/user/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const { data } = await userApi.get("/api/user/me", { headers });
 
       setUser(data);
       setIsAuth(true);
@@ -40,73 +53,80 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   }
 
-  async function updateProfilePic(fromData: any) {
+  async function updateProfilePic(formData: FormData) {
+    const headers = getAuthHeaders();
+
+    if (!headers) {
+      toast.error("Please login again");
+      return;
+    }
+
     setLoading(true);
     try {
-      const { data } = await axios.put(
-        `${user_service}/api/user/update/pic`,
-        fromData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const { data } = await userApi.put("/api/user/update/pic", formData, {
+        headers,
+      });
 
       toast.success(data.message);
-      fetchUser();
-    } catch (error: any) {
-      toast.error(error.response.data.message);
+      await fetchUser();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Unable to update profile picture"));
     } finally {
       setLoading(false);
     }
   }
 
-  async function updateResume(fromData: any) {
+  async function updateResume(formData: FormData) {
+    const headers = getAuthHeaders();
+
+    if (!headers) {
+      toast.error("Please login again");
+      return;
+    }
+
     setLoading(true);
     try {
-      const { data } = await axios.put(
-        `${user_service}/api/user/update/resume`,
-        fromData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const { data } = await userApi.put(
+        "/api/user/update/resume",
+        formData,
+        { headers }
       );
 
       toast.success(data.message);
-      fetchUser();
-    } catch (error: any) {
-      toast.error(error.response.data.message);
+      await fetchUser();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Unable to update resume"));
     } finally {
       setLoading(false);
     }
   }
 
   async function updateUser(name: string, phoneNumber: string, bio: string) {
+    const headers = getAuthHeaders();
+
+    if (!headers) {
+      toast.error("Please login again");
+      return;
+    }
+
     setBtnLoading(true);
     try {
-      const { data } = await axios.put(
-        `${user_service}/api/user/update/profile`,
+      const { data } = await userApi.put(
+        "/api/user/update/profile",
         { name, phoneNumber, bio },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers }
       );
       toast.success(data.message);
-      fetchUser();
-    } catch (error: any) {
-      toast.error(error.response.data.message);
+      await fetchUser();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Unable to update profile"));
     } finally {
       setBtnLoading(false);
     }
   }
 
   async function logoutUser() {
-    Cookies.set("token", "");
+    Cookies.remove("token");
     setUser(null);
     setIsAuth(false);
     toast.success("Logged out successfully");
@@ -116,62 +136,71 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     skill: string,
     setSkill: React.Dispatch<React.SetStateAction<string>>
   ) {
+    const headers = getAuthHeaders();
+
+    if (!headers) {
+      toast.error("Please login again");
+      return;
+    }
+
     setBtnLoading(true);
     try {
-      const { data } = await axios.post(
-        `${user_service}/api/user/skill/add`,
+      const { data } = await userApi.post(
+        "/api/user/skill/add",
         { skillName: skill },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers }
       );
       toast.success(data.message);
       setSkill("");
-      fetchUser();
-    } catch (error: any) {
-      toast.error(error.response.data.message);
+      await fetchUser();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Unable to add skill"));
     } finally {
       setBtnLoading(false);
     }
   }
 
   async function removeSkill(skill: string) {
+    const headers = getAuthHeaders();
+
+    if (!headers) {
+      toast.error("Please login again");
+      return;
+    }
+
     try {
-      const { data } = await axios.put(
-        `${user_service}/api/user/skill/delete`,
+      const { data } = await userApi.put(
+        "/api/user/skill/delete",
         { skillName: skill },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers }
       );
       toast.success(data.message);
-      fetchUser();
-    } catch (error: any) {
-      toast.error(error.response.data.message);
+      await fetchUser();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Unable to remove skill"));
     }
   }
 
   async function applyJob(job_id: number) {
+    const headers = getAuthHeaders();
+
+    if (!headers) {
+      toast.error("Please login again");
+      return;
+    }
+
     setBtnLoading(true);
     try {
-      const { data } = await axios.post(
-        `${user_service}/api/user/apply/job`,
+      const { data } = await userApi.post(
+        "/api/user/apply/job",
         { job_id },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers }
       );
 
       toast.success(data.message);
-      fetchApplications();
-    } catch (error: any) {
-      toast.error(error.response.data.message);
+      await fetchApplications();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Unable to apply for job"));
     } finally {
       setBtnLoading(false);
     }
@@ -180,15 +209,17 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [applications, setApplications] = useState<Application[]>([]);
 
   async function fetchApplications() {
+    const headers = getAuthHeaders();
+
+    if (!headers) {
+      setApplications([]);
+      return;
+    }
+
     try {
-      const { data } = await axios.get(
-        `${user_service}/api/user/application/all`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const { data } = await userApi.get("/api/user/application/all", {
+        headers,
+      });
 
       setApplications(data);
     } catch (error) {
@@ -197,8 +228,20 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   }
 
   useEffect(() => {
-    fetchUser();
-    fetchApplications();
+    const bootstrapApp = async () => {
+      const token = getAuthToken();
+
+      if (!token) {
+        setLoading(false);
+        setApplications([]);
+        return;
+      }
+
+      await fetchUser();
+      await fetchApplications();
+    };
+
+    void bootstrapApp();
   }, []);
 
   return (

@@ -2,12 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { auth_service, useAppData } from "@/context/AppContext";
-import axios from "axios";
+import { useAppData } from "@/context/AppContext";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
+import { getErrorMessage } from "@/lib/api";
+import { authApi } from "@/lib/http";
 
 const ResetPage = () => {
   const { token } = useParams();
@@ -21,8 +22,8 @@ const ResetPage = () => {
     e.preventDefault();
     setbtnLoading(true);
     try {
-      const { data } = await axios.post(
-        `${auth_service}/api/auth/reset/${token}`,
+      const { data } = await authApi.post(
+        `/api/auth/reset/${token}`,
         {
           password,
         }
@@ -30,8 +31,8 @@ const ResetPage = () => {
 
       toast.success(data.message);
       setPassword("");
-    } catch (error: any) {
-      toast.error(error.response.data.message);
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Unable to reset password"));
     } finally {
       setbtnLoading(false);
     }

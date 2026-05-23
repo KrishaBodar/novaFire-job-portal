@@ -1,6 +1,6 @@
 "use client";
+
 import { CareerGuideResponse } from "@/type";
-import axios from "axios";
 import {
   ArrowRight,
   BookOpen,
@@ -24,10 +24,11 @@ import {
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import { utils_service } from "@/context/AppContext";
+import { getErrorMessage } from "@/lib/api";
+import { utilsApi } from "@/lib/http";
 import toast from "react-hot-toast";
 
-const CarrerGuide = () => {
+const CareerGuide = () => {
   const [open, setOpen] = useState(false);
   const [skills, setSkills] = useState<string[]>([]);
   const [currentSkill, setCurrentSkill] = useState("");
@@ -35,37 +36,41 @@ const CarrerGuide = () => {
   const [response, setResponse] = useState<CareerGuideResponse | null>(null);
 
   const addSkill = () => {
-    if (currentSkill.trim() && !skills.includes(currentSkill.trim())) {
-      setSkills([...skills, currentSkill.trim()]);
+    const skill = currentSkill.trim();
+
+    if (skill && !skills.includes(skill)) {
+      setSkills((current) => [...current, skill]);
       setCurrentSkill("");
     }
   };
 
   const removeSkill = (skillToRemove: string) => {
-    setSkills(skills.filter((s) => s !== skillToRemove));
+    setSkills((current) => current.filter((skill) => skill !== skillToRemove));
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
       addSkill();
     }
   };
 
-  const getCarrerGuidance = async () => {
+  const getCareerGuidance = async () => {
     if (skills.length === 0) {
-      toast.error("Please add at least on skill");
+      toast.error("Please add at least one skill");
       return;
     }
+
     setLoading(true);
+
     try {
-      const { data } = await axios.post(`${utils_service}/api/utils/career`, {
-        skills: skills,
+      const { data } = await utilsApi.post(`/api/utils/career`, {
+        skills,
       });
 
       setResponse(data);
-      toast.success("Carrer guidence generated");
-    } catch (error: any) {
-      toast.error(error.response.data.message);
+      toast.success("Career guidance generated");
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Unable to generate guidance"));
     } finally {
       setLoading(false);
     }
@@ -77,79 +82,76 @@ const CarrerGuide = () => {
     setResponse(null);
     setOpen(false);
   };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-16">
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border bg-blue-50 dark:bg-blue-950 mb-4">
-          <Sparkles size={16} className="text-blue-600" />
-          <span className="text-sm font-medium">
-            AI-Powered Carrer Guidence
-          </span>
+    <div className="mx-auto max-w-7xl px-4 py-16">
+      <div className="mb-12 text-center">
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/5 px-4.5 py-1.5 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400">
+          <Sparkles size={16} className="text-indigo-500 animate-pulse" />
+          <span className="text-sm font-semibold tracking-wide">AI-Powered Career Guidance</span>
         </div>
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">
-          Discover Your Carrer Path
+        <h2 className="mb-4 text-3xl font-extrabold tracking-tight md:text-4xl text-slate-900 dark:text-white">
+          Discover your next career direction
         </h2>
-        <p className="text-lg opacity-70 max-w-2xl mx-auto mb-8">
-          Get personalized job recomendations and learnings roadmaps based on
-          your skills.
+        <p className="mx-auto mb-8 max-w-2xl text-lg text-slate-600 dark:text-slate-400">
+          Turn your current skill set into tailored job paths and an action
+          plan for what to learn next.
         </p>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size={"lg"} className="gap-2 h-12 px-8">
+            <Button size="lg" className="h-12 gap-2 px-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/20 dark:shadow-none hover:translate-y-[-1px] transition-all">
               <Sparkles size={18} />
-              Get Carrer Guidence
+              Get Career Guidance
               <ArrowRight size={18} />
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 rounded-2xl shadow-2xl">
             {!response ? (
               <>
                 <DialogHeader>
-                  <DialogTitle className="text-2xl flex items-center gap-2">
-                    <Sparkles className="text-blue-600" />
+                  <DialogTitle className="flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
+                    <Sparkles className="text-indigo-500" />
                     Tell us about your skills
                   </DialogTitle>
-                  <DialogDescription>
-                    Add your technical skills to recieve personalized carrer
-                    recomendations
+                  <DialogDescription className="text-slate-500 dark:text-slate-400">
+                    Add your technical skills to receive personalized career
+                    guidance from our AI agent.
                   </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="skill">Add Skills</Label>
+                    <Label htmlFor="skill" className="font-semibold text-slate-700 dark:text-slate-300">Add skills</Label>
                     <div className="flex gap-2">
                       <Input
                         id="skill"
-                        placeholder="e.g., React, Node.js, Python..."
+                        placeholder="React, Node.js, Product Design..."
                         value={currentSkill}
-                        onChange={(e) => setCurrentSkill(e.target.value)}
-                        className="h-11"
-                        onKeyPress={handleKeyPress}
+                        onChange={(event) => setCurrentSkill(event.target.value)}
+                        onKeyDown={handleKeyPress}
+                        className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50"
                       />
-                      <Button onClick={addSkill} className="gap-2">
-                        Add
-                      </Button>
+                      <Button onClick={addSkill} className="px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl">Add</Button>
                     </div>
                   </div>
 
                   {skills.length > 0 && (
                     <div className="space-y-2">
-                      <Label>Your Skills ({skills.length})</Label>
+                      <Label className="font-semibold text-slate-700 dark:text-slate-300">Your skills ({skills.length})</Label>
                       <div className="flex flex-wrap gap-2">
-                        {skills.map((s) => (
+                        {skills.map((skill) => (
                           <div
-                            key={s}
-                            className="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800"
+                            key={skill}
+                            className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50/50 px-3.5 py-1.5 dark:border-indigo-900/50 dark:bg-indigo-950/30"
                           >
-                            <span className="text-sm font-medium">{s}</span>
+                            <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">{skill}</span>
                             <button
-                              onClick={() => removeSkill(s)}
-                              className="h-5 w-5 rounded-full bg-red-500 text-white flex in-checked: justify-center"
+                              onClick={() => removeSkill(skill)}
+                              className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 hover:bg-red-500 dark:hover:bg-red-500 hover:text-white text-slate-500 transition-colors"
                             >
-                              <X size={13} />
+                              <X size={12} />
                             </button>
                           </div>
                         ))}
@@ -158,18 +160,19 @@ const CarrerGuide = () => {
                   )}
 
                   <Button
-                    onClick={getCarrerGuidance}
+                    onClick={getCareerGuidance}
                     disabled={loading || skills.length === 0}
-                    className="w-full h-11 gap-2"
+                    className="h-11 w-full gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl mt-2"
                   >
                     {loading ? (
                       <>
-                        <Loader2 size={18} className="animate-spin" /> Analyzing
-                        Your skills...
+                        <Loader2 size={18} className="animate-spin" />
+                        Analyzing your skills...
                       </>
                     ) : (
                       <>
-                        <Sparkles size={18} /> Generate Carrer Guidence
+                        <Sparkles size={18} />
+                        Generate career guidance
                       </>
                     )}
                   </Button>
@@ -178,93 +181,86 @@ const CarrerGuide = () => {
             ) : (
               <>
                 <DialogHeader>
-                  <DialogTitle className="text-2xl flex items-center gap-2">
-                    <Target className="text-blue-600" />
-                    Your Personlized Carrer Guide
+                  <DialogTitle className="flex items-center gap-2 text-2xl font-extrabold text-slate-900 dark:text-white">
+                    <Target className="text-indigo-500" />
+                    Your personalized career guide
                   </DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6 py-4">
-                  {/* summary */}
-                  <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-b-blue-200 dark:border-b-blue-800">
-                    <div className="flex items-start gap-3">
-                      <Lightbulb
-                        className="text-blue-600 mt-1 shrink-0"
-                        size={20}
-                      />
+                  <div className="rounded-2xl border border-indigo-100 bg-indigo-50/30 p-5 dark:border-indigo-900/30 dark:bg-indigo-950/20">
+                    <div className="flex items-start gap-3.5">
+                      <div className="h-10 w-10 rounded-xl bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                        <Lightbulb size={20} />
+                      </div>
                       <div>
-                        <h3 className="font-semibold mb-2">Carrer Summary</h3>
-                        <p className="text-sm leading-relaxed opacity-90">
+                        <h3 className="mb-1 font-bold text-slate-900 dark:text-white">Career Summary</h3>
+                        <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-350">
                           {response.summary}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* job options */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                      <Briefcase size={20} className="text-blue-600" />
-                      Recomended Carrer Paths
+                    <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                      <Briefcase size={20} className="text-indigo-500" />
+                      Recommended career paths
                     </h3>
-                    <div className="space-y-3">
-                      {response.jobOptions.map((job, index) => (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {response.jobOptions.map((job) => (
                         <div
-                          className="p-4 rounded-lg border hover:border-blue-500 transition-colors"
-                          key={index}
+                          className="rounded-2xl border border-slate-100 dark:border-slate-800 p-5 bg-white dark:bg-slate-900/30 hover:border-indigo-500/40 hover:shadow-lg hover:shadow-indigo-500/[0.02] dark:hover:bg-slate-900/60 transition-all duration-300"
+                          key={job.title}
                         >
-                          <h4 className="font-semibold text-base mb-2">
-                            {job.title}
-                          </h4>
-
-                          <div className="space-y-2 text-sm">
+                          <h4 className="mb-3 text-base font-bold text-slate-900 dark:text-white">{job.title}</h4>
+                          <div className="space-y-3 text-sm">
                             <div>
-                              <span className="font-medium opacity-70">
-                                Responsibilities:
-                              </span>
-                              <span className="opacity-80">
+                              <p className="font-semibold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider mb-0.5">
+                                Responsibilities
+                              </p>{" "}
+                              <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
                                 {job.responsibilities}
-                              </span>
+                              </p>
                             </div>
-                            <span className="font-medium opacity-70">
-                              Why this Role:
-                            </span>
-                            <span className="opacity-80">{job.why}</span>
+                            <div>
+                              <p className="font-semibold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider mb-0.5">
+                                Why it fits
+                              </p>{" "}
+                              <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                                {job.why}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Skills to learn */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                      <TrendingUp size={20} className="text-blue-600" />
-                      Skills to Enhance Your Carrer
+                    <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                      <TrendingUp size={20} className="text-indigo-500" />
+                      Skills to strengthen next
                     </h3>
                     <div className="space-y-4">
-                      {response.skillsToLearn.map((category, index) => (
-                        <div className="space-y-2" key={index}>
-                          <h4 className="font-semibold text-sm text-blue-600">
+                      {response.skillsToLearn.map((category) => (
+                        <div className="space-y-2.5" key={category.category}>
+                          <h4 className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
                             {category.category}
                           </h4>
-                          <div className="space-y-2">
-                            {category.skills.map((skill, sindex) => (
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            {category.skills.map((skill) => (
                               <div
-                                key={sindex}
-                                className="p-3 rounded-lg bg-secondary border text-sm"
+                                key={`${category.category}-${skill.title}`}
+                                className="rounded-xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/20 p-4 text-sm"
                               >
-                                <p className="font-medium mb-1">
-                                  {skill.title}
-                                </p>
-
-                                <p className="text-xs opacity-70 mb-1">
-                                  <span className="font-medium">Why: </span>
+                                <p className="mb-1.5 font-bold text-slate-900 dark:text-white">{skill.title}</p>
+                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                  <span className="font-semibold text-slate-800 dark:text-slate-200">Why:</span>{" "}
                                   {skill.why}
                                 </p>
-
-                                <p className="text-xs opacity-70 mb-1">
-                                  <span className="font-medium">How: </span>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                  <span className="font-semibold text-slate-800 dark:text-slate-200">How:</span>{" "}
                                   {skill.how}
                                 </p>
                               </div>
@@ -275,37 +271,26 @@ const CarrerGuide = () => {
                     </div>
                   </div>
 
-                  {/* Learning approch */}
-                  <div className="p-4 rounded-lg border bg-blue-950/20 dark:bg-red-950/20">
-                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                      <BookOpen size={20} className="text-blue-600" />
-                      {response?.learningApproach?.title}
+                  <div className="rounded-2xl border border-indigo-100/50 bg-indigo-500/[0.02] dark:border-indigo-900/20 p-5">
+                    <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                      <BookOpen size={20} className="text-indigo-500" />
+                      {response.learningApproach.title}
                     </h3>
-
-                    <ul className="space-y-2">
-                      {response?.learningApproach?.points?.map(
-                        (point, index) => (
-                          <li
-                            key={index}
-                            className="text-sm flex items-start gap-2"
-                          >
-                            <span className="text-blue-600 mt-0.5">•</span>
-                            <span
-                              className="opacity-90"
-                              dangerouslySetInnerHTML={{ __html: point }}
-                            />
-                          </li>
-                        )
-                      )}
+                    <ul className="space-y-2.5">
+                      {response.learningApproach.points.map((point, index) => (
+                        <li
+                          key={`${point}-${index}`}
+                          className="flex items-start gap-2.5 text-sm"
+                        >
+                          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-indigo-500 shrink-0" />
+                          <span className="text-slate-700 dark:text-slate-300 leading-relaxed">{point}</span>
+                        </li>
+                      ))}
                     </ul>
                   </div>
 
-                  <Button
-                    onClick={resetDialog}
-                    variant={"outline"}
-                    className="w-full"
-                  >
-                    Start New Analysis
+                  <Button onClick={resetDialog} variant="outline" className="w-full h-11 rounded-xl">
+                    Start new analysis
                   </Button>
                 </div>
               </>
@@ -317,4 +302,4 @@ const CarrerGuide = () => {
   );
 };
 
-export default CarrerGuide;
+export default CareerGuide;
