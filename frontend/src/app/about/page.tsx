@@ -9,7 +9,7 @@ const About = () => {
       <section className="mx-auto grid max-w-7xl gap-10 px-4 py-16 md:grid-cols-[0.95fr_1.05fr] md:items-center md:py-24">
         <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/70 shadow-2xl backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
           <img
-            src="/about.jpg"
+            src="/about.png"
             className="h-full w-full object-cover"
             alt="Team discussing hiring goals"
           />
