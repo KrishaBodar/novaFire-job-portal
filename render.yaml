@@ -1,0 +1,71 @@
+services:
+  # Auth Service
+  - type: web
+    name: novahire-auth
+    env: node
+    rootDir: services/auth
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: JWT_SECRET
+        value: kfdlsajeroifwahneflk
+      - key: JWT_SEC
+        value: kfdlsajeroifwahneflk
+
+  # Utils Service
+  - type: web
+    name: novahire-utils
+    env: node
+    rootDir: services/utils
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: PORT
+        value: 5001
+
+  # User Service
+  - type: web
+    name: novahire-user
+    env: node
+    rootDir: services/user
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: PORT
+        value: 5002
+      - key: JWT_SECRET
+        value: kfdlsajeroifwahneflk
+      - key: JWT_SEC
+        value: kfdlsajeroifwahneflk
+
+  # Job Service
+  - type: web
+    name: novahire-job
+    env: node
+    rootDir: services/job
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: PORT
+        value: 5003
+      - key: JWT_SECRET
+        value: kfdlsajeroifwahneflk
+      - key: JWT_SEC
+        value: kfdlsajeroifwahneflk
+
+  # Payment Service
+  - type: web
+    name: novahire-payment
+    env: node
+    rootDir: services/payment
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: PORT
+        value: 5004
+      - key: JWT_SECRET
+        value: kfdlsajeroifwahneflk
+      - key: JWT_SEC
+        value: kfdlsajeroifwahneflk
