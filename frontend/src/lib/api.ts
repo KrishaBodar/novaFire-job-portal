@@ -1,16 +1,49 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-export const utilsServiceUrl =
-  process.env.NEXT_PUBLIC_UTILS_SERVICE_URL ?? "http://localhost:5001";
-export const authServiceUrl =
-  process.env.NEXT_PUBLIC_AUTH_SERVICE_URL ?? "http://localhost:5000";
-export const userServiceUrl =
-  process.env.NEXT_PUBLIC_USER_SERVICE_URL ?? "http://localhost:5002";
-export const jobServiceUrl =
-  process.env.NEXT_PUBLIC_JOB_SERVICE_URL ?? "http://localhost:5003";
-export const paymentServiceUrl =
-  process.env.NEXT_PUBLIC_PAYMENT_SERVICE_URL ?? "http://localhost:5004";
+const getServiceUrl = (
+  envUrl: string | undefined,
+  productionFallback: string,
+  localPort: number
+) => {
+  if (
+    typeof window !== "undefined" &&
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1"
+  ) {
+    if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+      return envUrl;
+    }
+    return productionFallback;
+  }
+  return envUrl || `http://localhost:${localPort}`;
+};
+
+export const utilsServiceUrl = getServiceUrl(
+  process.env.NEXT_PUBLIC_UTILS_SERVICE_URL,
+  "https://novafire-job-portal-utils.onrender.com",
+  5001
+);
+export const authServiceUrl = getServiceUrl(
+  process.env.NEXT_PUBLIC_AUTH_SERVICE_URL,
+  "https://novafire-job-portal-auth.onrender.com",
+  5000
+);
+export const userServiceUrl = getServiceUrl(
+  process.env.NEXT_PUBLIC_USER_SERVICE_URL,
+  "https://novafire-job-portal-user.onrender.com",
+  5002
+);
+export const jobServiceUrl = getServiceUrl(
+  process.env.NEXT_PUBLIC_JOB_SERVICE_URL,
+  "https://novafire-job-portal-job.onrender.com",
+  5003
+);
+export const paymentServiceUrl = getServiceUrl(
+  process.env.NEXT_PUBLIC_PAYMENT_SERVICE_URL,
+  "https://novafire-job-portal-payment.onrender.com",
+  5004
+);
 
 type ApiErrorResponse = {
   message?: string;
