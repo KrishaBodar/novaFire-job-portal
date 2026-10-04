@@ -80,12 +80,13 @@ const startServer = async () => {
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      await connectKafka();
       await initDb();
 
       app.listen(port, () => {
         console.log(`Job service is running on http://localhost:${port}`);
       });
+
+      connectKafka().catch((err) => console.error("Non-critical Kafka connection error:", err));
 
       return;
     } catch (error) {

@@ -13,7 +13,15 @@ app.get("/health", (_req, res) => {
     res.json({ service: "auth", status: "ok" });
 });
 app.use(cors({
-    origin: allowedOrigins,
+    origin: (requestOrigin, callback) => {
+        if (!requestOrigin ||
+            requestOrigin.includes("vercel.app") ||
+            requestOrigin.includes("localhost") ||
+            allowedOrigins.some((o) => o && requestOrigin.includes(o.replace(/\/$/, "")))) {
+            return callback(null, true);
+        }
+        return callback(null, true);
+    },
     credentials: true,
 }));
 app.use(express.json());

@@ -6,9 +6,14 @@ dotenv.config();
 
 export const startSendMailConsumer = async () => {
   try {
+    const broker = process.env.Kafka_Broker || "localhost:9092";
+    const isRemote = !broker.includes("localhost") && !broker.includes("127.0.0.1");
+
     const kafka = new Kafka({
       clientId: "mail-service",
-      brokers: [process.env.Kafka_Broker || "localhost:9092"],
+      brokers: [broker],
+      ssl: isRemote,
+      connectionTimeout: 5000,
     });
 
     const consumer = kafka.consumer({ groupId: "mail-service-group" });

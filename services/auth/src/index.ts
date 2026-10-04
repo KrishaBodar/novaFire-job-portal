@@ -72,16 +72,17 @@ const startServer = async () => {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       if (!redisClient.isOpen) {
-        await redisClient.connect();
+        await redisClient.connect().catch((err) => console.error("Redis connection failed:", err));
         console.log("Auth service connected to redis.");
       }
 
-      await connectKafka();
       await initDb();
 
       app.listen(port, () => {
         console.log(`Auth service is running on http://localhost:${port}`);
       });
+
+      connectKafka().catch((err) => console.error("Non-critical Kafka connection error:", err));
 
       return;
     } catch (error) {

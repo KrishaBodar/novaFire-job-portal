@@ -5,9 +5,13 @@ let producer;
 let admin;
 export const connectKafka = async () => {
     try {
+        const broker = process.env.Kafka_Broker || "localhost:9092";
+        const isRemote = !broker.includes("localhost") && !broker.includes("127.0.0.1");
         const kafka = new Kafka({
             clientId: "auth-service",
-            brokers: [process.env.Kafka_Broker || "localhost:9092"],
+            brokers: [broker],
+            ssl: isRemote,
+            connectionTimeout: 5000,
         });
         admin = kafka.admin();
         await admin.connect();
