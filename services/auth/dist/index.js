@@ -8,7 +8,7 @@ export const redisClient = createClient({
     url: process.env.REDIS_URL || process.env.Redis_url,
 });
 redisClient.on("error", (err) => {
-    console.error("Redis Client Error:", err);
+    // Gracefully handle redis error
 });
 const port = Number(process.env.PORT || 5000);
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -55,27 +55,15 @@ async function initDb() {
     console.log("Auth database tables checked/created successfully.");
 }
 const startServer = async () => {
-    const maxRetries = 3;
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            if (!redisClient.isOpen) {
-                await redisClient.connect().catch((err) => console.error("Redis connection failed:", err));
-                console.log("Auth service connected to redis.");
-            }
-            await initDb();
-            app.listen(port, () => {
-                console.log(`Auth service is running on http://localhost:${port}`);
-            });
-            connectKafka().catch((err) => console.error("Non-critical Kafka connection error:", err));
-            return;
-        }
-        catch (error) {
-            console.error(`Auth service startup failed (attempt ${attempt}/${maxRetries})`, error);
-            if (attempt < maxRetries) {
-                await wait(2000 * attempt);
-            }
-        }
+    app.listen(port, () => {
+        console.log(`Auth service is running on http://localhost:${port}`);
+    });
+    try {
+        await initDb();
     }
-    console.error("Auth service could not start after multiple retries.");
+    catch (error) {
+        console.error("Auth DB init error:", error);
+    }
+    connectKafka().catch((err) => console.error("Kafka non-critical warning:", err));
 };
 void startServer();

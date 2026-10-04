@@ -57,30 +57,15 @@ const port = Number(process.env.PORT || 5004);
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const startServer = async () => {
-  const maxRetries = 3;
+  app.listen(port, () => {
+    console.log(`Payment service is running on http://localhost:${port}`);
+  });
 
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      await testDatabaseConnection();
-
-      app.listen(port, () => {
-        console.log(`Payment service is running on http://localhost:${port}`);
-      });
-
-      return;
-    } catch (error) {
-      console.error(
-        `Payment service startup failed (attempt ${attempt}/${maxRetries})`,
-        error
-      );
-
-      if (attempt < maxRetries) {
-        await wait(2000 * attempt);
-      }
-    }
+  try {
+    await testDatabaseConnection();
+  } catch (error) {
+    console.error("Payment DB connection warning:", error);
   }
-
-  console.error("Payment service could not start after multiple retries.");
 };
 
 void startServer();

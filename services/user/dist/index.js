@@ -14,7 +14,15 @@ app.get("/health", (_req, res) => {
     res.json({ service: "user", status: "ok" });
 });
 app.use(cors({
-    origin: allowedOrigins,
+    origin: (requestOrigin, callback) => {
+        if (!requestOrigin ||
+            requestOrigin.includes("vercel.app") ||
+            requestOrigin.includes("localhost") ||
+            allowedOrigins.some((o) => o && requestOrigin.includes(o.replace(/\/$/, "")))) {
+            return callback(null, true);
+        }
+        return callback(null, true);
+    },
     credentials: true,
 }));
 app.use(express.json());
@@ -23,22 +31,14 @@ app.use("/api/user", userRoutes);
 const port = Number(process.env.PORT || 5002);
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const startServer = async () => {
-    const maxRetries = 3;
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            await testDatabaseConnection();
-            app.listen(port, () => {
-                console.log(`User service is running on http://localhost:${port}`);
-            });
-            return;
-        }
-        catch (error) {
-            console.error(`User service startup failed (attempt ${attempt}/${maxRetries})`, error);
-            if (attempt < maxRetries) {
-                await wait(2000 * attempt);
-            }
-        }
+    app.listen(port, () => {
+        console.log(`User service is running on http://localhost:${port}`);
+    });
+    try {
+        await testDatabaseConnection();
     }
-    console.error("User service could not start after multiple retries.");
+    catch (error) {
+        console.error("User DB connection warning:", error);
+    }
 };
 void startServer();

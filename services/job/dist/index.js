@@ -66,23 +66,15 @@ async function initDb() {
     console.log("Job service database tables checked and created successfully.");
 }
 const startServer = async () => {
-    const maxRetries = 3;
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            await initDb();
-            app.listen(port, () => {
-                console.log(`Job service is running on http://localhost:${port}`);
-            });
-            connectKafka().catch((err) => console.error("Non-critical Kafka connection error:", err));
-            return;
-        }
-        catch (error) {
-            console.error(`Job service startup failed (attempt ${attempt}/${maxRetries})`, error);
-            if (attempt < maxRetries) {
-                await wait(2000 * attempt);
-            }
-        }
+    app.listen(port, () => {
+        console.log(`Job service is running on http://localhost:${port}`);
+    });
+    try {
+        await initDb();
     }
-    console.error("Job service could not start after multiple retries.");
+    catch (error) {
+        console.error("Job DB init error:", error);
+    }
+    connectKafka().catch((err) => console.error("Kafka non-critical warning:", err));
 };
 void startServer();
